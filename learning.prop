@@ -1,0 +1,9 @@
+{
+  "modules": {
+    "learning": {
+      "description": "Ce plugin permet d'apprendre a l'IA les réponses a certaines questions.",
+      "version": "0.1",
+      "debug": "true"
+    }
+  }
+}

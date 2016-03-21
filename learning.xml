@@ -1,0 +1,34 @@
+<grammar version="1.0" xml:lang="fr-FR" mode="voice"  root="learning" xmlns="http://www.w3.org/2001/06/grammar" tag-format="semantics/1.0">
+
+  <!-- Root -->
+  <rule id="learning" scope="public">
+    <tag>out.action=new Object(); </tag>
+    <item>Sarah</item>
+    <one-of>
+      <item weight="2"><ruleref uri="#learningQuestion"/><tag>out.action.type="question";</tag></item>
+      <item><ruleref uri="#updateXML"/><tag>out.action.type="generateXML";</tag></item>
+    </one-of>
+    <tag>out.action._attributes.uri="http://127.0.0.1:8080/sarah/learning";</tag>
+    <tag>out.action._attributes.dictation="true";</tag>
+  </rule>
+
+  <!-- Apprentissage -->
+  <rule id="learningQuestion">
+    <example>Sarah que dois-tu répondre si on te dit "quel age as-tu ?"</example>
+    <item>que dois-tu répondre</item>
+    <ruleref special="GARBAGE" />
+    <item>on te</item>
+    <one-of>
+      <item>dis</item>
+      <item>demande</item>
+    </one-of>
+    <ruleref special="GARBAGE" />
+  </rule>
+
+  <!-- Mise à jour des grammaires d'apprentissage -->
+  <rule id="updateXML">
+    <example>Sarah met a jour ta base</example>
+    <item>met a jour ta base</item>
+  </rule>
+
+</grammar>
