@@ -53,12 +53,13 @@ exports.action = function(data, callback, config, SARAH){
       var tempcontent = fs.readFileSync(tempstorage,'utf8');
       var splitcontent = tempcontent.split(";");
       // Sauvegarde de la question et de la reponse
-      insert_json(jsoncontent, splitcontent[0], splitcontent[1], voiceAnalysis,SARAH);
-      SARAH.remote({'context' : 'default'});
-      // Suppression du fichier tampon
-      fs.unlink(tempstorage);
-      // Generation du fichier de Grammaire XML
-      XMLGen(jsoncontent,XMLFile,XMLTemplate);
+      insert_json(jsoncontent, splitcontent[0], splitcontent[1], voiceAnalysis,SARAH, function() {
+        // Suppression du fichier tampon
+        fs.unlink(tempstorage);
+        // Generation du fichier de Grammaire XML
+        XMLGen(jsoncontent,XMLFile,XMLTemplate);
+        SARAH.remote({'context' : 'default'});
+      });
       break;
     case "learned":
       // Recupération de la réponse à la question (randomisé si plusieures réponses)
@@ -151,12 +152,12 @@ function search_json(jsoncontent, ref, voiceAnalysis,SARAH) {
 }
 
 // Fonction JSON pour enregistrer un couple question/réponse
-function insert_json(jsoncontent, ref, question, response, SARAH) {
+function insert_json(jsoncontent, ref, question, response, SARAH, callback) {
   // Mise à jour du JSON existant avec les nouveaux éléments
   jsoncontent[ref] = {'question': question, 'response': [response]};
   // Ecriture du fichier JSON
   fs.writeFile(jsonstorage,JSON.stringify(jsoncontent,null,4) , function (err) {
-    SARAH.speak("Merci de me l'avoir appris") ;
+    SARAH.speak("Merci de me l'avoir appris", function() {callback()}) ;
   });
 }
 
