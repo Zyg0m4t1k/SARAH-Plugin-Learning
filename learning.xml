@@ -27,8 +27,8 @@
 
   <!-- Mise à jour des grammaires d'apprentissage -->
   <rule id="updateXML">
-    <example>Sarah met a jour ta base</example>
-    <item>met a jour ta base</item>
+    <example>Sarah met a jour ta base neuronne</example>
+    <item>met a jour ta base neuronne</item>
   </rule>
 
 </grammar>

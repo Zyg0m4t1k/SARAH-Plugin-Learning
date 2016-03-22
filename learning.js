@@ -5,8 +5,8 @@ var jsonstorage = __dirname + '\\storage\\storage.json';
 var tempstorage = __dirname + '\\storage\\__tempstorage';
 var XMLFile = __dirname + '\\learned.xml';
 var XMLTemplate = __dirname + '\\template\\learned-xml.template';
-var debug = true;
 //var debug = config.modules.learning.debug;
+var debug = false;
 
 // Export Action
 exports.action = function(data, callback, config, SARAH){
@@ -57,8 +57,9 @@ exports.action = function(data, callback, config, SARAH){
         // Suppression du fichier tampon
         fs.unlink(tempstorage);
         // Generation du fichier de Grammaire XML
-        XMLGen(jsoncontent,XMLFile,XMLTemplate);
-        SARAH.remote({'context' : 'default'});
+        XMLGen(jsoncontent,XMLFile,XMLTemplate, function() {
+          SARAH.remote({'context' : 'default'});
+        });
       });
       break;
     case "learned":
@@ -68,8 +69,9 @@ exports.action = function(data, callback, config, SARAH){
       break;
     case "generateXML":
       // Génération du XML de grammaire a partir des données stockés
-      XMLGen(jsoncontent,XMLFile,XMLTemplate);
-      SARAH.answer();
+      XMLGen(jsoncontent,XMLFile,XMLTemplate, function() {
+        SARAH.answer();
+      });
       break;
   }
 // Envoi d'un callback au serveur
@@ -170,12 +172,14 @@ function update_json(jsoncontent, ref, response) {
 }
 
 // Fonction de generation de XML pour les réponses
-function XMLGen(jsoncontent,XMLFile,XMLTemplate) {
+function XMLGen(jsoncontent,XMLFile,XMLTemplate,callback) {
   // Lecture du fichier de template
   template = fs.readFileSync(XMLTemplate,'utf8');
   // Découpage du fichier au niveau de la balise
   data = template.split("<!-- XMLGenerator -->");
   var allcontent_array = [];
+  // Récupère la taille du tableau principal
+  var pending = Object.keys(jsoncontent).length;
   // Boucle pour génération du contenu de grammaire a partir du JSON
   [].forEach.call( Object.keys( jsoncontent ), function( key ){
     var object_ref = key;
@@ -194,20 +198,17 @@ function XMLGen(jsoncontent,XMLFile,XMLTemplate) {
     object_question = object_question.replace(/\|/g, '');
     // On push la nouvelle grammaire dans un tableau
     allcontent_array.push('\t\t<item>'+EnGarbageStart+object_question+EnGarbageEnd+'<tag>out.action.type="learned";out.action.ref="'+object_ref+'"</tag></item>');
-  });
-  // On rassemble tout le contenu (template + grammaire)
-  allcontent_string = allcontent_array.join('\n');
-  data.splice(1,0,allcontent_string);
-  data = data.join(' ');
-  // On ecrit le fichier XML de grammaire
-  fs.writeFileSync(XMLFile,data,'utf-8');
-  // Relance du client SARAH car il met en cache les réponses a priori
-  // Sans cela, une fois une réponse ajouté, plus moyen de reposer les questions d'aprentissable
-  // C'est la question apprise qui est comprise
-  var exec = require('child_process').exec;
-  var process = '"%CD%\\\\plugins\\\\learning\\\\bin\\\\reloadClient.bat"';
-  var child = exec(process, function (error, stdout, stderr) {
-    if (error !== null) console.log('exec error: ' + error);
+    if (!--pending) {
+      // On rassemble tout le contenu (template + grammaire)
+      allcontent_string = allcontent_array.join('\n');
+      data.splice(1,0,allcontent_string);
+      data = data.join(' ');
+      // On ecrit le fichier XML de grammaire
+      fs.writeFileSync(XMLFile,data,'utf-8');
+      setTimeout(function(){
+        callback();
+      }, 500);﻿
+    }
   });
 }
 
